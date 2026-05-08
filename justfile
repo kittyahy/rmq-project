@@ -26,6 +26,10 @@ build-csharp:
     printf '#!/usr/bin/env sh\nexec mono "$(dirname "$0")/rmq-csharp/rmq-csharp.exe" "$@"\n' > rmq
     chmod +x rmq
 
+build-go:
+    cd rmq-go && go build -o rmq-go .
+    cp rmq-go/rmq-go rmq
+
 run:
     ./rmq input > data.csv
 
