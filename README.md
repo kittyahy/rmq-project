@@ -20,6 +20,7 @@ This repository already contains:
 - `input-generator` to generate the input files in `input/`
 - A Rust sample program in `rmq-rust/src/main.rs`
 - `plot.py` to make the plots
+- `report/report.tex`: a starting point for the report
 
 ## Input data
 Input data is provided in `input/{n}.in` as a plain text file in the following file format:
