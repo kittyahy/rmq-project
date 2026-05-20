@@ -19,6 +19,7 @@ class Input {
         this.data = data;
         this.queryL = queryL;
         this.queryR = queryR;
+        int i = 5;
     }
 }
 
