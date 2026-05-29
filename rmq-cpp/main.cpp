@@ -19,7 +19,7 @@
 // Trivial implementation that computes each query on the fly.
 struct Naive {
 	static std::string name() { return "QuadraticQuery"; }
-	// NOTE: Improved implementations should simply return size_t::MAX.
+	// NOTE: Improved implementations should simply return SIZE_MAXX.
 	static size_t max_n() { return 10'000; }
 
 	const std::vector<uint64_t>* data;
@@ -35,9 +35,83 @@ struct Naive {
 	}
 };
 
-// -------------------------------------------------------------
-// TODO: Implement the RMQ interface for additional data structures.
-// -------------------------------------------------------------
+// implementation that precompute all queries,
+struct Precompute {
+	static std::string name() {return "Precomputed";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static Precompute build(const std::vector<uint64_t>& data);//TODO
+
+	size_t space() const; //TODO
+
+	uint64_t query(size_t l, size_t r) const; //TODO
+};
+
+// implementation using a sparse array
+struct SpraseArray {
+	static std::string name() {return "SpraseArray";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static SpraseArray build(const std::vector<uint64_t>& data); //TODO
+
+	size_t space() const; //TODO
+
+	uint64_t query(size_t l, size_t r) const; //TODO
+};
+
+// implementation using a segment tree,
+struct SegmentTree {
+	static std::string name() {return "SegmentTree";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static SegmentTree build(const std::vector<uint64_t>& data); //TODO
+
+	size_t space() const; //TODO
+
+	uint64_t query(size_t l, size_t r) const; //TODO
+};
+
+// implementation using a block based approach with suffix/prefix minima on the fly
+//TODO
+struct BlockBasedOnTheFly {
+	static std::string name() {return "BlockBasedOnTheFly";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static BlockBasedOnTheFly build(const std::vector<uint64_t>& data);//TODO
+
+	size_t space() const; //TODO
+
+	uint64_t query(size_t l, size_t r) const;//TODO
+};
+
+// implementation using a block based approach with suffix/prefix minima precomputed
+//TODO
+struct BlockBasedPrecomputed {
+	static std::string name() {return "BlockBasedPrecomputed";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static BlockBasedPrecomputed build(const std::vector<uint64_t>& data);//TODO
+
+	size_t space() const;//TODO
+
+	uint64_t query(size_t l, size_t r) const;//TODO
+};
+
+// implementation with Cartesian trees (with varying block size).
+//TODO
+struct CartesianTree {
+	static std::string name() {return "CartesianTree";}
+	static size_t max_n() {return SIZE_MAX;}
+
+	static CartesianTree build(const std::vector<uint64_t>& data); //TODO
+
+
+	size_t space() const; //TODO
+
+
+	uint64_t query(size_t l, size_t r) const; //TODO
+
+};
 
 struct Input {
 	std::vector<uint64_t> data;
