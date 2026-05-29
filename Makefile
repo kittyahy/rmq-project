@@ -8,14 +8,14 @@ generate_input:
 
 # TODO: Customize this for your language.
 # Make sure to end with a `rmq` binary in the root directory.
-build: build-rust
+build: build-cpp
 
 build-rust:
 	cd rmq-rust && cargo build --release
 	cp rmq-rust/target/release/rmq-rust rmq
 
 build-cpp:
-	g++ -std=c++17 -O3 -march=native rmq-cpp/*.cpp -o rmq
+	clang++ -std=c++17 -O3 -march=native rmq-cpp/*.cpp -o rmq # Wieder zu g++ öndern
 
 build-java:
 	javac -d rmq-java/build rmq-java/Rmq.java
@@ -49,7 +49,7 @@ plot:
 open-plots:
 	open plots/*.png
 
-report:
-    cd report && latexmk -pvc -pdf -interaction=nonstopmode report.tex -cd -shell-escape
-report-debug:
-    cd report && latexmk -pdf report.tex -cd
+#report:
+    #cd report && latexmk -pvc -pdf -interaction=nonstopmode report.tex -cd -shell-escape
+#report-debug:
+    #cd report && latexmk -pdf report.tex -cd
