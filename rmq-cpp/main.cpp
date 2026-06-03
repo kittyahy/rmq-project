@@ -1,12 +1,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
-#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
+#include <filesystem>
 
 // RMQ interface (duck-typed via templates):
 //
@@ -37,22 +37,44 @@ struct Naive {
 
 // implementation that precompute all queries,
 struct Precompute {
+	~Precompute() {
+		delete dataContainer;
+	}
 	static std::string name() {return "Precomputed";}
-	static size_t max_n() {return SIZE_MAX;}
+	static size_t max_n() {return 10'000;}
+	const std::vector<std::vector<uint64_t>>* dataContainer;
+	static Precompute build(const std::vector<uint64_t>& data) {
+		std::vector<std::vector<uint64_t>>* dataContainer = new std::vector<std::vector<uint64_t>>(data.size());
+		for (int r = 0; r < data.size(); r++) {
+			(*dataContainer)[r].resize(r+1);
+			(*dataContainer)[r][r] = data[r];
+			for (int l = r-1; 0 <= l; l--) {
+				(*dataContainer)[r][l] = std::min((*dataContainer)[r][l+1],data[l]);
+			}
+		}
+	return {dataContainer};
+	}
 
-	static Precompute build(const std::vector<uint64_t>& data);//TODO
+	size_t space() const {
+		size_t size = 0;
+		for ( size_t i = 0; i < dataContainer->size(); i++) {
+			size += dataContainer->at(i).size();
+		}
+		return size*sizeof(uint64_t);
+	}
+	uint64_t query(size_t l, size_t r) const {
+ 	return (*dataContainer)[r][l];
+	}
 
-	size_t space() const; //TODO
 
-	uint64_t query(size_t l, size_t r) const; //TODO
 };
 
 // implementation using a sparse array
-struct SpraseArray {
+struct SparseArray {
 	static std::string name() {return "SpraseArray";}
 	static size_t max_n() {return SIZE_MAX;}
 
-	static SpraseArray build(const std::vector<uint64_t>& data); //TODO
+	static SparseArray build(const std::vector<uint64_t>& data); //TODO
 
 	size_t space() const; //TODO
 
@@ -186,6 +208,7 @@ int main(int argc, char* argv[]) {
 
 	for(const auto& input : inputs) {
 		bench<Naive>(input);
+		bench<Precompute>(input);
 		// TODO: Add other implementations here.
 	}
 
