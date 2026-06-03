@@ -8,3 +8,5 @@
 /rmq-haskell/*.o
 /rmq-csharp/*.exe
 .idea/
+/rmq-cpp/main.dSYM/
+
