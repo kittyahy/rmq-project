@@ -15,7 +15,7 @@ build-rust:
 	cp rmq-rust/target/release/rmq-rust rmq
 
 build-cpp:
-	clang++ -std=c++17 -O3 -march=native rmq-cpp/*.cpp -o rmq # Wieder zu g++ öndern
+	clang++ -std=c++20 -O3 -march=native rmq-cpp/main.cpp -o rmq
 
 build-java:
 	javac -d rmq-java/build rmq-java/Rmq.java
