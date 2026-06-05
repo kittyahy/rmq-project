@@ -9,4 +9,5 @@
 /rmq-csharp/*.exe
 .idea/
 /rmq-cpp/main.dSYM/
+/rmq-cpp/main
 
