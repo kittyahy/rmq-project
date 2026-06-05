@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <chrono>
+#include <complex>
 #include <cstdint>
 #include <fstream>
 #include <iomanip>
@@ -71,14 +72,44 @@ struct Precompute {
 
 // implementation using a sparse array
 struct SparseArray {
-	static std::string name() {return "SpraseArray";}
-	static size_t max_n() {return SIZE_MAX;}
+	~SparseArray() {
+		delete dataContainer;
+	}
+	static std::string name() {return "Sparse";}
+	static size_t max_n() {return 10'000;}
 
-	static SparseArray build(const std::vector<uint64_t>& data); //TODO
+	const std::vector<std::vector<uint64_t>>* dataContainer;
 
-	size_t space() const; //TODO
+	static SparseArray build(const std::vector<uint64_t>& data) {
+		auto k = static_cast<int>(std::log2(data.size()));
+		auto* dataContainer = new std::vector<std::vector<uint64_t>>(k+1);
+		for (size_t l = 0; l <= k; l++) {
+			auto current_size = data.size()-((1<<l)-1);
+			(*dataContainer)[l].resize(current_size);
+			for (size_t i = 0; i < current_size; i++) {
+				uint64_t minimum = data[i];
+				for(size_t j = i + 1; j < (1 << l)+i; j++) minimum = std::min(minimum, data[j]); //DP möglich
+				(*dataContainer)[l][i] = minimum;
+			}
+		}
+		return {dataContainer};
+	}
 
-	uint64_t query(size_t l, size_t r) const; //TODO
+	size_t space() const {
+		size_t size = 0;
+		for (size_t i = 0; i < dataContainer->size(); i++) {
+			size += dataContainer->at(i).size();
+		}
+		return size*sizeof(uint64_t);
+	};
+
+	uint64_t query(size_t l, size_t r) const {
+		r++; //to use the algorithm given in the slides
+		auto largest_power = int(std::log2(r-l));
+		auto left = (*dataContainer)[largest_power][l];
+		auto right = (*dataContainer)[largest_power][r-(1<<largest_power)];
+		return std::min(left,right);
+	}
 };
 
 // implementation using a segment tree,
@@ -209,6 +240,7 @@ int main(int argc, char* argv[]) {
 	for(const auto& input : inputs) {
 		bench<Naive>(input);
 		bench<Precompute>(input);
+		bench<SparseArray>(input);
 		// TODO: Add other implementations here.
 	}
 
