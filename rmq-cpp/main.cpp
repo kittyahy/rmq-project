@@ -45,7 +45,7 @@ struct Precompute {
 	static size_t max_n() {return 10'000;}
 	const std::vector<std::vector<uint64_t>>* dataContainer;
 	static Precompute build(const std::vector<uint64_t>& data) {
-		std::vector<std::vector<uint64_t>>* dataContainer = new std::vector<std::vector<uint64_t>>(data.size());
+		auto* dataContainer = new std::vector<std::vector<uint64_t>>(data.size());
 		for (int r = 0; r < data.size(); r++) {
 			(*dataContainer)[r].resize(r+1);
 			(*dataContainer)[r][r] = data[r];
@@ -105,7 +105,7 @@ struct SparseArray {
 
 	uint64_t query(size_t l, size_t r) const {
 		r++; //to use the algorithm given in the slides
-		auto largest_power = int(std::log2(r-l));
+		auto largest_power = static_cast<int>(std::log2(r - l));
 		auto left = (*dataContainer)[largest_power][l];
 		auto right = (*dataContainer)[largest_power][r-(1<<largest_power)];
 		return std::min(left,right);
@@ -114,14 +114,55 @@ struct SparseArray {
 
 // implementation using a segment tree,
 struct SegmentTree {
+	~SegmentTree() {
+		delete dataContainer;
+	}
 	static std::string name() {return "SegmentTree";}
-	static size_t max_n() {return SIZE_MAX;}
+	static size_t max_n() {return 10'000;}
 
-	static SegmentTree build(const std::vector<uint64_t>& data); //TODO
+	const std::vector<std::vector<uint64_t>>* dataContainer;
 
-	size_t space() const; //TODO
+	static SegmentTree build(const std::vector<uint64_t>& data) {
+		int k = static_cast<int>(std::log2(data.size()));
+		auto* dataContainer = new std::vector<std::vector<uint64_t>>(k+1);
+		for (size_t l = 0; l <= k; l++) {
+			auto power = (1<<l);
+			auto size_of_l = static_cast<int>(data.size()/power);
+			(*dataContainer)[l].resize(size_of_l);
+			for (size_t i = 0; i < size_of_l; i++) {
+				uint64_t minimum = data[i*power];
+				for(size_t j = i*power+1; j < (i+1)*power; j++) minimum = std::min(minimum, data[j]); //DP möglich
+				(*dataContainer)[l][i] = minimum;
+			}
+		}
+		return {dataContainer};
+	}
 
-	uint64_t query(size_t l, size_t r) const; //TODO
+	size_t space() const {
+		size_t size = 0;
+		for (size_t i = 0; i < dataContainer->size(); i++) {
+			size += dataContainer->at(i).size();
+		}
+		return size*sizeof(uint64_t);
+	};
+
+	uint64_t query(size_t l, size_t r) const {
+		r++;  // to use the algorithm from the slides
+		auto exponent = 0;
+		uint64_t minimum = SIZE_MAX;
+		while (r != l ) {
+			if ((l % (1<<(exponent+1))) == (1<<(exponent))){
+				minimum = std::min(minimum, (*dataContainer)[exponent][static_cast<int>(l/(1<<exponent))]);
+				l = l + (1<<exponent);
+			}
+			if ((r % (1<<(exponent+1))) == (1<<(exponent))){
+				minimum = std::min(minimum, (*dataContainer)[exponent][static_cast<int>(r/(1<<exponent))-1] );
+				r = r - (1<<exponent);
+			}
+			exponent++;
+		}
+		return minimum;
+	}
 };
 
 // implementation using a block based approach with suffix/prefix minima on the fly
@@ -241,6 +282,7 @@ int main(int argc, char* argv[]) {
 		bench<Naive>(input);
 		bench<Precompute>(input);
 		bench<SparseArray>(input);
+		bench<SegmentTree>(input);
 		// TODO: Add other implementations here.
 	}
 
