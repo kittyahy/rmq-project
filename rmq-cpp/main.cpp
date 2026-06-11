@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <functional>
 
 // RMQ interface (duck-typed via templates):
 //
@@ -25,7 +26,7 @@ struct Naive {
 
 	const std::vector<uint64_t>* data;
 
-	static Naive build(const std::vector<uint64_t>& data) { return {&data}; }
+	static Naive build(const std::vector<uint64_t>& data, const std::function<int(int i)>& s) { return {&data}; }
 
 	size_t space() const { return sizeof(*this); }
 
@@ -44,7 +45,7 @@ struct Precompute {
 	static std::string name() {return "Precomputed";}
 	static size_t max_n() {return 10'000;}
 	const std::vector<std::vector<uint64_t>>* dataContainer;
-	static Precompute build(const std::vector<uint64_t>& data) {
+	static Precompute build(const std::vector<uint64_t>& data, const std::function<int(int i)>& s) {
 		auto* dataContainer = new std::vector<std::vector<uint64_t>>(data.size());
 		for (int r = 0; r < data.size(); r++) {
 			(*dataContainer)[r].resize(r+1);
@@ -80,7 +81,7 @@ struct SparseArray {
 
 	const std::vector<std::vector<uint64_t>>* dataContainer;
 
-	static SparseArray build(const std::vector<uint64_t>& data) {
+	static SparseArray build(const std::vector<uint64_t>& data,const std::function<int(int i)>& s) {
 		auto k = static_cast<int>(std::log2(data.size()));
 		auto* dataContainer = new std::vector<std::vector<uint64_t>>(k+1);
 		for (size_t l = 0; l <= k; l++) {
@@ -122,7 +123,7 @@ struct SegmentTree {
 
 	const std::vector<std::vector<uint64_t>>* dataContainer;
 
-	static SegmentTree build(const std::vector<uint64_t>& data) {
+	static SegmentTree build(const std::vector<uint64_t>& data, const std::function<int(int i)>& s) {
 		int k = static_cast<int>(std::log2(data.size()));
 		auto* dataContainer = new std::vector<std::vector<uint64_t>>(k+1);
 		for (size_t l = 0; l <= k; l++) {
@@ -171,7 +172,7 @@ struct BlockBasedOnTheFly {
 	static std::string name() {return "BlockBasedOnTheFly";}
 	static size_t max_n() {return SIZE_MAX;}
 
-	static BlockBasedOnTheFly build(const std::vector<uint64_t>& data);//TODO
+	static BlockBasedOnTheFly build(const std::vector<uint64_t>& data, const std::function<int(int i)>& s);//TODO
 
 	size_t space() const; //TODO
 
@@ -184,7 +185,7 @@ struct BlockBasedPrecomputed {
 	static std::string name() {return "BlockBasedPrecomputed";}
 	static size_t max_n() {return SIZE_MAX;}
 
-	static BlockBasedPrecomputed build(const std::vector<uint64_t>& data);//TODO
+	static BlockBasedPrecomputed build(const std::vector<uint64_t>& data,const std::function<int(int i)>& s);//TODO
 
 	size_t space() const;//TODO
 
@@ -197,7 +198,7 @@ struct CartesianTree {
 	static std::string name() {return "CartesianTree";}
 	static size_t max_n() {return SIZE_MAX;}
 
-	static CartesianTree build(const std::vector<uint64_t>& data); //TODO
+	static CartesianTree build(const std::vector<uint64_t>& data, const std::function<int(int i)>& s); //TODO
 
 
 	size_t space() const; //TODO
@@ -227,7 +228,7 @@ Input read_input(const std::filesystem::path& file) {
 
 // Bench the given RMQ implementation on the given input, and print results in CSV format.
 template <typename RMQ>
-void bench(const Input& input) {
+void bench(const Input& input, const std::function<int(int i)>& s) {
 	std::cerr << std::setw(10) << input.data.size() << "\t" << std::setw(20) << RMQ::name() << "\t";
 
 	size_t max_n = RMQ::max_n();
@@ -237,7 +238,7 @@ void bench(const Input& input) {
 		return;
 	}
 
-	auto rmq = RMQ::build(input.data);
+	auto rmq = RMQ::build(input.data,  s);
 	std::cerr << std::setw(10) << rmq.space() << "\t";
 
 	auto start   = std::chrono::high_resolution_clock::now();
@@ -278,11 +279,20 @@ int main(int argc, char* argv[]) {
 		          [](const Input& a, const Input& b) { return a.data.size() < b.data.size(); });
 	}
 
+
+	std::vector<std::function<int(int i)>> blocksize = {
+		[] (int n) {return 1;},
+		[] (int n) {return n;},
+		[] (int n) {return static_cast<int>(std::log2(n));},
+		[] (int n) {return 64;},
+		[] (int n) {return 62;},
+		[] (int n) {return 66;},
+	};
 	for(const auto& input : inputs) {
-		bench<Naive>(input);
-		bench<Precompute>(input);
-		bench<SparseArray>(input);
-		bench<SegmentTree>(input);
+		bench<Naive>(input, blocksize[0]);
+		bench<Precompute>(input, blocksize[0]);
+		bench<SparseArray>(input, blocksize[0]);
+		bench<SegmentTree>(input, blocksize[0]);
 		// TODO: Add other implementations here.
 	}
 
